@@ -42,12 +42,7 @@ class InstConfig(private val file: File) : Runnable {
                     val pitch = getDouble("pitch").run {
                         if (sign != 1.0) 1.0 else this
                     }
-                    InstObject.instBoxSet.add(
-                        InstBox(
-                            blockA,
-                            blockB,
-                            pitch.toFloat()
-                        )
+                    InstObject.instBoxSet.add(InstBox(blockA, blockB, pitch.toFloat())
                     )
                 }
             }

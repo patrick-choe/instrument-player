@@ -37,7 +37,7 @@ object InstArguments {
 
     class SoundArgument internal constructor() : KommandArgument<Sound> {
         override val parseFailMessage: String
-            get() = "${KommandArgument.TOKEN} 플레이어를 찾지 못했습니다."
+            get() = "Sound ${KommandArgument.TOKEN} not found"
 
         override fun parse(context: KommandContext, param: String): Sound? {
             return InstObject.instSoundMap[param]

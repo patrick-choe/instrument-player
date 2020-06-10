@@ -14,9 +14,9 @@ class InstListener : Listener {
             if (type != InstObject.instMaterial)
                 return
             event.player.run {
-                if (InstObject.instPlayer != this && !InstObject.instSupporter.contains(this))
+                if (InstObject.instPlayer != null && InstObject.instPlayer != this && !InstObject.instSupporter.contains(this))
                     return
-                this.rayTraceBlocks(256.0, FluidCollisionMode.NEVER)?.hitBlock?.run {
+                rayTraceBlocks(256.0, FluidCollisionMode.NEVER)?.hitBlock?.run {
                     InstObject.instBoxSet.forEach { box ->
                         if (box.contains(this)) {
                             event.isCancelled = true
