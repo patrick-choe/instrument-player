@@ -4,20 +4,17 @@ import com.github.noonmaru.kommand.KommandBuilder
 import com.github.noonmaru.kommand.KommandSyntaxException
 import com.github.noonmaru.kommand.argument.integer
 import com.github.noonmaru.kommand.argument.player
-import com.github.noonmaru.kommand.argument.string
 import com.github.patrick.inst.InstObject
 import org.bukkit.Bukkit
 import org.bukkit.Material
-import org.bukkit.Sound
 import org.bukkit.entity.Player
-import kotlin.streams.toList
 
 object InstCommand {
     internal fun register(builder: KommandBuilder) {
         builder.run {
             then("item") {
                 require { isOp }
-                then("itemType" to string()) {
+                then("itemType" to InstArguments.material()) {
                     executes {
                         val itemType = it.getArgument("itemType")
                         InstObject.instMaterial = Material.getMaterial(itemType)?: throw KommandSyntaxException("unknown item: $itemType")
@@ -28,21 +25,11 @@ object InstCommand {
             then("sound") {
                 require { isOp || (this is Player && this == InstObject.instPlayer) }
                 then("type") {
-                    then("soundType" to string()) {
+                    then("soundType" to InstArguments.sound()) {
                         executes {
                             val soundType = it.getArgument("soundType")
-                            if (setOf(Sound.BLOCK_NOTE_BLOCK_BASEDRUM, Sound.BLOCK_NOTE_BLOCK_BASS, Sound.BLOCK_NOTE_BLOCK_BELL,
-                                    Sound.BLOCK_NOTE_BLOCK_CHIME, Sound.BLOCK_NOTE_BLOCK_FLUTE, Sound.BLOCK_NOTE_BLOCK_GUITAR,
-                                    Sound.BLOCK_NOTE_BLOCK_HARP, Sound.BLOCK_NOTE_BLOCK_HAT, Sound.BLOCK_NOTE_BLOCK_PLING,
-                                    Sound.BLOCK_NOTE_BLOCK_SNARE,Sound.BLOCK_NOTE_BLOCK_XYLOPHONE).stream().map(Sound::name).toList().contains(soundType)) {
-                                InstObject.instSound = try {
-                                    Sound.valueOf(soundType)
-                                } catch (exception: IllegalArgumentException) {
-                                    throw KommandSyntaxException("unknown sound: $soundType")
-                                }
-                                it.sender.sendMessage("Inst sound is now $soundType")
-                            } else
-                                throw KommandSyntaxException("unknown sound: $soundType")
+                            InstObject.instSound = InstObject.instSoundMap[soundType]?: throw KommandSyntaxException("unknown sound: $soundType")
+                            it.sender.sendMessage("Inst sound is now $soundType")
                         }
                     }
                 }
