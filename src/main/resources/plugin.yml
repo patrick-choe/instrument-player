@@ -1,0 +1,16 @@
+name: InstPlayer
+description: Instrument Player for Paper 1.13.2 +
+main: com.github.patrick.inst.InstPlugin
+depend: [Kotlin]
+authors: [PatrickKR]
+api-version: "1.13"
+version: 0.1-SNAPSHOT
+commands:
+  inst:
+    usage: /<command> [Player]
+    permission: inst.command
+    description: Instrument player command
+permissions:
+  inst.command:
+    default: op
+    description: Instrument player command permission
