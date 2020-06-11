@@ -7,6 +7,11 @@ import java.io.File
 
 @Suppress("unused")
 class InstPlugin : JavaPlugin() {
+    companion object {
+        lateinit var instance: InstPlugin
+            private set
+    }
+
     @Suppress("UsePropertyAccessSyntax")
     override fun onEnable() {
         saveDefaultConfig()
@@ -18,5 +23,6 @@ class InstPlugin : JavaPlugin() {
         }
         server.scheduler.runTaskTimer(this, InstConfig(File(dataFolder, "config.yml")), 0, 1)
         logger.info("Inst Plugin v0.1-SNAPSHOT")
+        instance = this
     }
 }

@@ -12,5 +12,5 @@ commands:
     description: Instrument player command
 permissions:
   inst.command:
-    default: op
+    default: true
     description: Instrument player command permission

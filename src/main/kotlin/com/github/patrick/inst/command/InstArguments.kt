@@ -4,8 +4,10 @@ import com.github.noonmaru.kommand.KommandContext
 import com.github.noonmaru.kommand.argument.KommandArgument
 import com.github.noonmaru.kommand.argument.suggestions
 import com.github.patrick.inst.InstObject
+import com.github.patrick.inst.InstPlugin
 import org.bukkit.Material
 import org.bukkit.Sound
+import java.io.File
 
 object InstArguments {
     class MaterialArgument internal constructor() : KommandArgument<Material> {
@@ -56,5 +58,36 @@ object InstArguments {
 
     fun sound(): SoundArgument {
         return SoundArgument.instance
+    }
+
+    class FileArgument internal constructor() : KommandArgument<File> {
+        override val parseFailMessage: String
+            get() = "Sound ${KommandArgument.TOKEN} not found"
+
+        override fun parse(context: KommandContext, param: String): File? {
+            return InstPlugin.instance.dataFolder.listFiles {
+                file -> file.nameWithoutExtension == param && file.extension == EXTENSION
+            }?.run {
+                if (isNotEmpty()) first() else null
+            }
+        }
+
+        override fun listSuggestion(context: KommandContext, target: String): Collection<String> {
+            return (InstPlugin.instance.dataFolder.listFiles {
+                file -> file.extension == EXTENSION
+            }?: emptyArray()).toList().suggestions(target) { it.nameWithoutExtension }
+        }
+
+        companion object {
+            internal val instance by lazy {
+                FileArgument()
+            }
+
+            private const val EXTENSION = "json"
+        }
+    }
+
+    fun loadFile(): FileArgument {
+        return FileArgument.instance
     }
 }

@@ -7,6 +7,7 @@ import org.bukkit.Sound
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
+import kotlin.math.pow
 import kotlin.math.sign
 
 class InstConfig(private val file: File) : Runnable {
@@ -26,6 +27,7 @@ class InstConfig(private val file: File) : Runnable {
             } catch (e: IllegalArgumentException) {
                 throw IllegalArgumentException("invalid item")
             }
+            InstObject.instBoxSet.clear()
             config.getValues(false).forEach { entry ->
                 if (setOf("sound", "item").contains(entry.key)) return@forEach
                 (entry.value as ConfigurationSection).run {
@@ -39,11 +41,8 @@ class InstConfig(private val file: File) : Runnable {
                         if (it.count() != 3) throw IllegalArgumentException("invalid ${entry.key}: blockB")
                         blockB = InstBlock(it[0], it[1], it[2])
                     }
-                    val pitch = getDouble("pitch").run {
-                        if (sign != 1.0) 1.0 else this
-                    }
-                    InstObject.instBoxSet.add(InstBox(blockA, blockB, pitch.toFloat())
-                    )
+                    val pitch = getInt("pitch")
+                    InstObject.instBoxSet.add(InstBox(blockA, blockB, 2F.pow(pitch.toFloat() / 12)))
                 }
             }
             InstObject.instSound = sound

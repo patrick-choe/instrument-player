@@ -1,19 +1,27 @@
 package com.github.patrick.inst
 
+import com.github.patrick.inst.task.InstScheduler
 import com.github.patrick.inst.util.InstBox
 import org.bukkit.Material
 import org.bukkit.Sound
 import org.bukkit.entity.Player
+import org.bukkit.scheduler.BukkitTask
 
 object InstObject {
     val instBoxSet = HashSet<InstBox>()
-    var instPlayer: Player? = null
     val instSupporter = HashSet<Player>()
+    var instPlayer: Player? = null
+        internal set
     var instSound = Sound.BLOCK_NOTE_BLOCK_XYLOPHONE
+        internal set
     var instMaterial = Material.STICK
-    var instBpm = 100
+        internal set
+    var instBpm = 120
+        internal set
     var instPerBar = 4
-    var instBar = 16
+        internal set
+    var instBar = 8
+        internal set
 
     val instSoundMap = HashMap<String, Sound>().apply {
         put("BASEDRUM", Sound.BLOCK_NOTE_BLOCK_BASEDRUM)
@@ -28,4 +36,10 @@ object InstObject {
         put("SNARE", Sound.BLOCK_NOTE_BLOCK_SNARE)
         put("XYLOPHONE", Sound.BLOCK_NOTE_BLOCK_XYLOPHONE)
     }
+
+    var instSchedulerTask: BukkitTask? = null
+        internal set
+
+    var instScheduler: InstScheduler? = null
+        internal set
 }
