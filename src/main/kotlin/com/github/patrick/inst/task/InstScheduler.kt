@@ -28,7 +28,9 @@ class InstScheduler : Runnable {
     var instTask: InstTask? = null
         private set
 
-    val totalTicks = (1200.0 * InstObject.instPerBar * InstObject.instBar/ InstObject.instBpm).toInt()
+    val totalTicks = InstObject.run {
+        (1200.0 * instPerBar * instBar/ instBpm).toInt()
+    }
 
     val music = HashMap<Int, EnumMap<Sound, Float>>()
 
@@ -55,9 +57,11 @@ class InstScheduler : Runnable {
         }
         music.clear()
         isPlaying = false
-        InstObject.instSchedulerTask?.cancel()
-        InstObject.instSchedulerTask = null
-        InstObject.instPlayer = null
-        InstObject.instSupporter.clear()
+        InstObject.run {
+            instSchedulerTask?.cancel()
+            instSchedulerTask = null
+            instPlayer = null
+            instSupporter.clear()
+        }
     }
 }

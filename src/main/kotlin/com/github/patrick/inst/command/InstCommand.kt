@@ -44,203 +44,219 @@ object InstCommand {
     private val GSON = Gson()
 
     internal fun register(builder: KommandBuilder) {
-        builder.run {
-            then("item") {
-                require { isOp }
-                then("type" to material()) {
-                    executes {
-                        it.parseOrWarnArgument<Material>("type")?.run {
-                            InstObject.instMaterial = this
-                            it.send("아이템이 ${name}로 설정되었습니다.")
-                        }
-                    }
-                }
-            }
-            then("sound") {
-                require { isOp || (this is Player && this == InstObject.instPlayer) }
-                then("type") {
-                    then("type" to noteSound()) {
+        InstObject.run {
+            builder.run {
+                then("item") {
+                    require { isOp }
+                    then("type" to material()) {
                         executes {
-                            it.parseOrWarnArgument<Sound>("type")?.run {
-                                InstObject.instSound = this
-                                it.send("악기가 ${name.removePrefix(PREFIX).toLowerCase().split("_").stream().map(String::capitalize).toList().joinToString(separator = " ")}로 설정되었습니다.")
+                            it.parseOrWarnArgument<Material>("type")?.run {
+                                instMaterial = this
+                                it.send("아이템이 ${name}로 설정되었습니다.")
                             }
                         }
                     }
                 }
-                then("bpm") {
-                    require { InstObject.instSchedulerTask == null }
-                    then("count" to rangedInt(1..1000)) {
-                        executes {
-                            it.parseOrWarnArgument<Int>("count")?.run {
-                                InstObject.instBpm = this
-                                it.send("템포가 ${this}로 설정되었습니다.")
+                then("sound") {
+                    require { isOp || this == instPlayer }
+                    then("type") {
+                        then("type" to noteSound()) {
+                            executes {
+                                it.parseOrWarnArgument<Sound>("type")?.run {
+                                    instSound = this
+                                    it.send("악기가 ${name.removePrefix(PREFIX).toLowerCase().split("_").stream().map(String::capitalize).toList().joinToString(separator = " ")}로 설정되었습니다.")
+                                }
                             }
+                        }
+                        executes {
+                            it.send("현재 악기: ${instSound.name.removePrefix(PREFIX).toLowerCase().split("_").stream().map(String::capitalize).toList().joinToString(separator = " ")}")
+                        }
+                    }
+                    then("bpm") {
+                        require { instSchedulerTask == null }
+                        then("count" to rangedInt(1..1000)) {
+                            executes {
+                                it.parseOrWarnArgument<Int>("count")?.run {
+                                    instBpm = this
+                                    it.send("템포가 ${this}로 설정되었습니다.")
+                                }
+                            }
+                        }
+                        executes {
+                            it.send("현재 템포: $instBpm")
+                        }
+                    }
+                    then("perBar") {
+                        require { instSchedulerTask == null }
+                        then("count" to rangedInt(1..32)) {
+                            executes {
+                                it.parseOrWarnArgument<Int>("count")?.run {
+                                    instPerBar = this
+                                    it.send("마디 당 박자 수가 ${this}로 설정되었습니다.")
+                                }
+                            }
+                        }
+                        executes {
+                            it.send("현재 마디 당 박자 수: $instPerBar")
+                        }
+                    }
+                    then("bar") {
+                        require { instSchedulerTask == null }
+                        then("count" to rangedInt(1..32)) {
+                            executes {
+                                it.parseOrWarnArgument<Int>("count")?.run {
+                                    instPerBar = this
+                                    it.send("마디 수가 ${this}로 설정되었습니다.")
+                                }
+                            }
+                        }
+                        executes {
+                            it.send("현재 마디 수: $instPerBar")
                         }
                     }
                 }
-                then("perBar") {
-                    require { InstObject.instSchedulerTask == null }
-                    then("count" to rangedInt(1..32)) {
-                        executes {
-                            it.parseOrWarnArgument<Int>("count")?.run {
-                                InstObject.instPerBar = this
-                                it.send("마디 당 박자 수가 ${this}로 설정되었습니다.")
+                then("record") {
+                    require { isOp }
+                    then("start") {
+                        require { instSchedulerTask == null }
+                        then("player" to player()) {
+                            executes {
+                                it.parseOrWarnArgument<Player>("player")?.run {
+                                    it.startRecord(this)
+                                }
                             }
                         }
-                    }
-                }
-                then("bar") {
-                    require { InstObject.instSchedulerTask == null }
-                    then("count" to rangedInt(1..32)) {
                         executes {
-                            it.parseOrWarnArgument<Int>("count")?.run {
-                                InstObject.instPerBar = this
-                                it.send("마디 수가 ${this}로 설정되었습니다.")
-                            }
+                            require { this is Player }
+                            it.startRecord(it.sender as Player)
                         }
                     }
-                }
-            }
-            then("record") {
-                require { isOp }
-                then("start") {
-                    require { InstObject.instSchedulerTask == null }
-                    then("player" to player()) {
+                    then("stop") {
+                        require { instSchedulerTask != null }
                         executes {
-                            it.parseOrWarnArgument<Player>("player")?.run {
-                                it.startRecord(this)
-                            }
+                            instScheduler?.stop()
+                            it.send("녹음이 중지되었습니다.")
                         }
                     }
-                    executes {
-                        require { this is Player }
-                        it.startRecord(it.sender as Player)
-                    }
-                }
-                then("stop") {
-                    require { InstObject.instSchedulerTask != null }
-                    executes {
-                        InstObject.instScheduler?.stop()
-                        it.send("녹음이 중지되었습니다.")
-                    }
-                }
-                then("load") {
-                    require { InstObject.instSchedulerTask == null }
-                    then("name" to existentFile()) {
-                        executes {
-                            it.parseOrWarnArgument<File>("name")?.let { file ->
-                                try {
-                                    @Suppress("UNCHECKED_CAST")
-                                    val content = FileInputStream(file).use { stream ->
-                                        GSON.fromJson(String(stream.readBytes()), Map::class.java)
-                                    } as Map<String, Map<String, String>>
-                                    val task = Bukkit.getScheduler().runTaskTimer(InstPlugin.instance, object : Runnable {
-                                        private var count = 0
+                    then("load") {
+                        require { instSchedulerTask == null }
+                        then("name" to existentFile()) {
+                            executes {
+                                it.parseOrWarnArgument<File>("name")?.let { file ->
+                                    try {
+                                        @Suppress("UNCHECKED_CAST")
+                                        val content = FileInputStream(file).use { stream ->
+                                            GSON.fromJson(String(stream.readBytes()), Map::class.java)
+                                        } as Map<String, Map<String, String>>
+                                        val task = Bukkit.getScheduler().runTaskTimer(InstPlugin.instance, object : Runnable {
+                                            private var count = 0
 
-                                        override fun run() {
-                                            Bukkit.getOnlinePlayers().forEach { player ->
-                                                content[count.toString()]?.entries?.forEach { entry ->
-                                                    player.playSound(player.location, InstObject.instSoundMap.getOrDefault(entry.key, InstObject.instSound), SoundCategory.MASTER, 100F, entry.value.toFloatOrNull()?: 1F)
+                                            override fun run() {
+                                                Bukkit.getOnlinePlayers().forEach { player ->
+                                                    content[count.toString()]?.entries?.forEach { entry ->
+                                                        player.playSound(player.location, instSoundMap.getOrDefault(entry.key, instSound), SoundCategory.MASTER, 100F, entry.value.toFloatOrNull()?: 1F)
+                                                    }
+                                                }
+                                                count++
+                                            }
+                                        }, 0, 1)
+                                        Bukkit.getScheduler().runTaskLater(InstPlugin.instance, Runnable {
+                                            task.cancel()
+                                        }, content.count().toLong())
+                                        it.send("${file.nameWithoutExtension} 파일의 녹음을 재생합니다.")
+                                    } catch (exception: IOException) {
+                                        exception.printStackTrace()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    then("save") {
+                        then("name" to nonexistentFile()) {
+                            require { instSchedulerTask != null }
+                            executes {
+                                instScheduler?.run {
+                                    it.send("파일 저장 기다리는 중...")
+                                    Bukkit.getScheduler().runTaskLater(InstPlugin.instance, Runnable {
+                                        it.parseOrNullArgument<String>("name")?.let { name ->
+                                            val map = HashMap<String, HashMap<String, String>>().apply {
+                                                music.forEach { entry ->
+                                                    put(entry.key.toString().removePrefix(PREFIX), HashMap<String, String>().apply {
+                                                        entry.value.forEach { sound ->
+                                                            put(sound.key.name, sound.value.toString())
+                                                        }
+                                                    })
                                                 }
                                             }
-                                            count++
+                                            try {
+                                                FileOutputStream(File(FOLDER, "$name.$EXTENSION")).use { file ->
+                                                    file.write(Gson().toJson(map).toByteArray())
+                                                    it.send("녹음이 $name.$EXTENSION 파일에 저장되었습니다.")
+                                                }
+                                            } catch (exception: IOException) {
+                                                exception.printStackTrace()
+                                            }
+                                            stop()
                                         }
-                                    }, 0, 1)
-                                    Bukkit.getScheduler().runTaskLater(InstPlugin.instance, Runnable {
-                                        task.cancel()
-                                    }, content.count().toLong())
-                                    it.send("${file.nameWithoutExtension} 파일의 녹음을 재생합니다.")
-                                } catch (exception: IOException) {
-                                    exception.printStackTrace()
+                                    }, (totalTicks / instBar).toLong())
                                 }
                             }
                         }
                     }
                 }
-                then("save") {
-                    then("name" to nonexistentFile()) {
-                        require { InstObject.instSchedulerTask != null }
-                        executes {
-                            InstObject.instScheduler?.run {
-                                it.send("파일 저장 기다리는 중...")
-                                Bukkit.getScheduler().runTaskLater(InstPlugin.instance, Runnable {
-                                    it.parseOrNullArgument<String>("name")?.let { name ->
-                                        val map = HashMap<String, HashMap<String, String>>().apply {
-                                            music.forEach { entry ->
-                                                put(entry.key.toString().removePrefix(PREFIX), HashMap<String, String>().apply {
-                                                    entry.value.forEach { sound ->
-                                                        put(sound.key.name, sound.value.toString())
-                                                    }
-                                                })
-                                            }
-                                        }
-                                        try {
-                                            FileOutputStream(File(FOLDER, "$name.$EXTENSION")).use { file ->
-                                                file.write(Gson().toJson(map).toByteArray())
-                                                it.send("녹음이 $name.$EXTENSION 파일에 저장되었습니다.")
-                                            }
-                                        } catch (exception: IOException) {
-                                            exception.printStackTrace()
-                                        }
-                                        stop()
-                                    }
-                                }, (totalTicks / InstObject.instBar).toLong())
+                then("player") {
+                    require { isOp }
+                    then("set") {
+                        require { instSchedulerTask == null }
+                        then("player" to player()) {
+                            executes {
+                                it.parseOrWarnArgument<Player>("player")?.run {
+                                    it.setPlayer(this)
+                                }
                             }
                         }
-                    }
-                }
-            }
-            then("player") {
-                require { isOp }
-                then("set") {
-                    require { InstObject.instSchedulerTask == null }
-                    then("player" to player()) {
                         executes {
-                            it.parseOrWarnArgument<Player>("player")?.run {
-                                it.setPlayer(this)
-                            }
+                            require { this is Player }
+                            it.setPlayer(it.sender as Player)
                         }
                     }
-                    executes {
-                        require { this is Player }
-                        it.setPlayer(it.sender as Player)
-                    }
-                }
-                then("add") {
-                    then("player" to player()) {
-                        executes {
-                            it.parseOrWarnArgument<Player>("player")?.run {
-                                it.addPlayer(this)
+                    then("add") {
+                        then("player" to player()) {
+                            executes {
+                                it.parseOrWarnArgument<Player>("player")?.run {
+                                    it.addPlayer(this)
+                                }
                             }
                         }
-                    }
-                    executes {
-                        require { this is Player }
-                        it.addPlayer(it.sender as Player)
-                    }
-                }
-                then("remove") {
-                    then("player" to player()) {
                         executes {
-                            it.parseOrWarnArgument<Player>("player")?.run {
-                                it.removePlayer(this)
-                            }
+                            require { this is Player }
+                            it.addPlayer(it.sender as Player)
                         }
                     }
-                    executes {
-                        require { this is Player }
-                        it.removePlayer(it.sender as Player)
+                    then("remove") {
+                        then("player" to player()) {
+                            executes {
+                                it.parseOrWarnArgument<Player>("player")?.run {
+                                    it.removePlayer(this)
+                                }
+                            }
+                        }
+                        executes {
+                            require { this is Player }
+                            it.removePlayer(it.sender as Player)
+                        }
                     }
-                }
-                then("clear") {
-                    executes {
-                        InstObject.run {
+                    then("clear") {
+                        executes {
                             if (instScheduler == null)
                                 instPlayer = null
                             instSupporter.clear()
                             it.send("악기 연주자와 사용자를 초기화 했습니다.")
                         }
+                    }
+                    executes {
+                        instPlayer?.run { it.send("현재 연주자: $displayName") }
+                        it.send("현재 사용자: ${instSupporter.joinToString()}")
                     }
                 }
             }

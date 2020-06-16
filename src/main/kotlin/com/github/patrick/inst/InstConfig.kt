@@ -36,36 +36,36 @@ internal class InstConfig(private val file: File) : Runnable {
         if (last != lastModified) {
             lastModified = last
             val config = YamlConfiguration.loadConfiguration(file)
-            val sound = try {
-                Sound.valueOf(requireNotNull(config.getString("sound")))
-            } catch (e: IllegalArgumentException) {
-                throw IllegalArgumentException("유효하지 않는 악기입니다.")
-            }
-            val material = try {
-                Material.valueOf(requireNotNull(config.getString("item")))
-            } catch (e: IllegalArgumentException) {
-                throw IllegalArgumentException("유효하지 않는 아이템 입니다.")
-            }
-            InstObject.instBoxSet.clear()
-            config.getValues(false).forEach { entry ->
-                if (setOf("sound", "item").contains(entry.key)) return@forEach
-                (entry.value as ConfigurationSection).run {
-                    val blockA: InstBlock
-                    val blockB: InstBlock
-                    getIntegerList("blockA").let {
-                        if (it.count() != 3) throw IllegalArgumentException("유효하지 않는 구역 ${entry.key}: blockA")
-                        blockA = InstBlock(it[0], it[1], it[2])
+            InstObject.run {
+                instBoxSet.clear()
+                config.getValues(false).forEach { entry ->
+                    if (setOf("sound", "item").contains(entry.key)) return@forEach
+                    (entry.value as ConfigurationSection).run {
+                        val blockA: InstBlock
+                        val blockB: InstBlock
+                        getIntegerList("blockA").let {
+                            if (it.count() != 3) throw IllegalArgumentException("유효하지 않는 구역 ${entry.key}: blockA")
+                            blockA = InstBlock(it[0], it[1], it[2])
+                        }
+                        getIntegerList("blockB").let {
+                            if (it.count() != 3) throw IllegalArgumentException("유효하지 않는 구역 ${entry.key}: blockB")
+                            blockB = InstBlock(it[0], it[1], it[2])
+                        }
+                        val pitch = getInt("pitch")
+                        instBoxSet.add(InstBox(blockA, blockB, 2F.pow((pitch - 12).toFloat() / 12)))
                     }
-                    getIntegerList("blockB").let {
-                        if (it.count() != 3) throw IllegalArgumentException("유효하지 않는 구역 ${entry.key}: blockB")
-                        blockB = InstBlock(it[0], it[1], it[2])
-                    }
-                    val pitch = getInt("pitch")
-                    InstObject.instBoxSet.add(InstBox(blockA, blockB, 2F.pow((pitch - 12).toFloat() / 12)))
+                }
+                instSound = try {
+                    Sound.valueOf(requireNotNull(config.getString("sound")))
+                } catch (e: IllegalArgumentException) {
+                    throw IllegalArgumentException("유효하지 않는 악기입니다.")
+                }
+                instMaterial = try {
+                    Material.valueOf(requireNotNull(config.getString("item")))
+                } catch (e: IllegalArgumentException) {
+                    throw IllegalArgumentException("유효하지 않는 아이템 입니다.")
                 }
             }
-            InstObject.instSound = sound
-            InstObject.instMaterial = material
             println("설정을 불러왔습니다.")
         }
     }

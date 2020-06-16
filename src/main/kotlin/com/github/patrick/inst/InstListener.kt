@@ -32,29 +32,31 @@ internal class InstListener : Listener {
     @EventHandler
     fun onInteract(event: PlayerInteractEvent) {
         event.item?.run {
-            if (type != InstObject.instMaterial)
-                return
-            event.player.run {
-                if (InstObject.instPlayer != null && InstObject.instPlayer != this && !InstObject.instSupporter.contains(this))
+            InstObject.run {
+                if (type != instMaterial)
                     return
-                rayTraceBlocks(256.0, FluidCollisionMode.NEVER)?.hitBlock?.run {
-                    InstObject.instBoxSet.forEach { box ->
-                        if (box.contains(this)) {
-                            event.isCancelled = true
-                            Bukkit.getOnlinePlayers().forEach player@{
-                                if (it == null)
-                                    return@player
-                                it.playSound(it.location, InstObject.instSound, SoundCategory.MASTER, 100F, box.pitch)
-                            }
-                            InstObject.instScheduler?.run {
-                                if (isPlaying) {
-                                    val current = (instTask as InstLoopTask).remain
-                                    Bukkit.getScheduler().runTaskLater(InstPlugin.instance, Runnable {
-                                        music[current]?.put(InstObject.instSound, box.pitch)
-                                    }, (totalTicks / InstObject.instBar).toLong())
+                event.player.run {
+                    if (instPlayer != null && instPlayer != this && !instSupporter.contains(this))
+                        return
+                    rayTraceBlocks(256.0, FluidCollisionMode.NEVER)?.hitBlock?.run {
+                        instBoxSet.forEach { box ->
+                            if (box.contains(this)) {
+                                event.isCancelled = true
+                                Bukkit.getOnlinePlayers().forEach player@{
+                                    if (it == null)
+                                        return@player
+                                    it.playSound(it.location, instSound, SoundCategory.MASTER, 100F, box.pitch)
                                 }
+                                instScheduler?.run {
+                                    if (isPlaying) {
+                                        val current = (instTask as InstLoopTask).remain
+                                        Bukkit.getScheduler().runTaskLater(InstPlugin.instance, Runnable {
+                                            music[current]?.put(instSound, box.pitch)
+                                        }, (totalTicks / instBar).toLong())
+                                    }
+                                }
+                                return
                             }
-                            return
                         }
                     }
                 }

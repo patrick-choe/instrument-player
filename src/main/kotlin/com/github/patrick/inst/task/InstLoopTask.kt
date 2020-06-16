@@ -50,7 +50,7 @@ class InstLoopTask(private val scheduler: InstScheduler) : InstTask {
                 it?.run {
                     val multiplied = bar.progress * InstObject.instBar
                     exp = multiplied.run { this - toInt() }.toFloat()
-                    level = (bar.progress * InstObject.instBar).toInt() + 1
+                    level = multiplied.toInt() + 1
                     scheduler.music[remain]?.forEach { entry ->
                         playSound(location, entry.key, SoundCategory.MASTER, 100F, entry.value)
                     }

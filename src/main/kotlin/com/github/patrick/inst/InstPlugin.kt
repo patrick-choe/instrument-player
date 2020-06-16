@@ -43,6 +43,6 @@ class InstPlugin : JavaPlugin() {
         }
         server.scheduler.runTaskTimer(this, InstConfig(File(dataFolder, "config.yml")), 0, 1)
         FOLDER.mkdir()
-        logger.info("Inst Plugin v0.2.1-SNAPSHOT")
+        logger.info("Inst Plugin v0.2.2-SNAPSHOT")
     }
 }
