@@ -26,11 +26,7 @@ import com.github.patrick.inst.InstObject
 import com.github.patrick.inst.InstPlugin
 import com.github.patrick.inst.task.InstScheduler
 import com.google.gson.Gson
-import org.bukkit.Bukkit
-import org.bukkit.GameMode
-import org.bukkit.Material
-import org.bukkit.Sound
-import org.bukkit.SoundCategory
+import org.bukkit.*
 import org.bukkit.entity.Player
 import java.io.File
 import java.io.FileInputStream
@@ -316,5 +312,7 @@ object InstCommand {
     private fun KommandContext.runIfPlayer(block: Player.() -> Unit) {
         if (sender is Player)
             block.invoke(sender as Player)
+        else
+            send("${ChatColor.RED}알 수 없는 명령입니다.")
     }
 }
