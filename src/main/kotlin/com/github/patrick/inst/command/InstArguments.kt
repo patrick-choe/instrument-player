@@ -1,93 +1,49 @@
+/*
+ * Copyright (C) 2020 PatrickKR
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Contact me on <mailpatrickkr@gmail.com>
+ */
+
 package com.github.patrick.inst.command
 
-import com.github.noonmaru.kommand.KommandContext
-import com.github.noonmaru.kommand.argument.KommandArgument
-import com.github.noonmaru.kommand.argument.suggestions
-import com.github.patrick.inst.InstObject
-import com.github.patrick.inst.InstPlugin
-import org.bukkit.Material
-import org.bukkit.Sound
-import java.io.File
+import com.github.patrick.inst.command.argument.ExistentFileArgument
+import com.github.patrick.inst.command.argument.MaterialArgument
+import com.github.patrick.inst.command.argument.NonexistentFileArgument
+import com.github.patrick.inst.command.argument.NoteSoundArgument
+import com.github.patrick.inst.command.argument.RangedIntegerArgument
 
-object InstArguments {
-    class MaterialArgument internal constructor() : KommandArgument<Material> {
-        override val parseFailMessage: String
-            get() = "Material ${KommandArgument.TOKEN} not found"
+internal const val EXTENSION = "json"
+internal const val PREFIX = "BLOCK_NOTE_BLOCK_"
 
-        override fun parse(context: KommandContext, param: String): Material? {
-            return try {
-                Material.valueOf(param)
-            } catch (exception: IllegalArgumentException) {
-                null
-            }
-        }
+internal fun rangedInt(range: IntRange): RangedIntegerArgument {
+    return RangedIntegerArgument(range)
+}
 
-        override fun listSuggestion(context: KommandContext, target: String): Collection<String> {
-            return Material.values().toList().suggestions(target) { it.name }
-        }
+internal fun material(): MaterialArgument {
+    return MaterialArgument.instance
+}
 
-        companion object {
-            internal val instance by lazy {
-                MaterialArgument()
-            }
-        }
-    }
+internal fun noteSound(): NoteSoundArgument {
+    return NoteSoundArgument.instance
+}
 
-    fun material(): MaterialArgument {
-        return MaterialArgument.instance
-    }
+internal fun existentFile(): ExistentFileArgument {
+    return ExistentFileArgument.instance
+}
 
-    class SoundArgument internal constructor() : KommandArgument<Sound> {
-        override val parseFailMessage: String
-            get() = "Sound ${KommandArgument.TOKEN} not found"
-
-        override fun parse(context: KommandContext, param: String): Sound? {
-            return InstObject.instSoundMap[param]
-        }
-
-        override fun listSuggestion(context: KommandContext, target: String): Collection<String> {
-            return InstObject.instSoundMap.keys.suggestions(target)
-        }
-
-        companion object {
-            internal val instance by lazy {
-                SoundArgument()
-            }
-        }
-    }
-
-    fun sound(): SoundArgument {
-        return SoundArgument.instance
-    }
-
-    class FileArgument internal constructor() : KommandArgument<File> {
-        override val parseFailMessage: String
-            get() = "Sound ${KommandArgument.TOKEN} not found"
-
-        override fun parse(context: KommandContext, param: String): File? {
-            return InstPlugin.instance.dataFolder.listFiles {
-                file -> file.nameWithoutExtension == param && file.extension == EXTENSION
-            }?.run {
-                if (isNotEmpty()) first() else null
-            }
-        }
-
-        override fun listSuggestion(context: KommandContext, target: String): Collection<String> {
-            return (InstPlugin.instance.dataFolder.listFiles {
-                file -> file.extension == EXTENSION
-            }?: emptyArray()).toList().suggestions(target) { it.nameWithoutExtension }
-        }
-
-        companion object {
-            internal val instance by lazy {
-                FileArgument()
-            }
-
-            private const val EXTENSION = "json"
-        }
-    }
-
-    fun loadFile(): FileArgument {
-        return FileArgument.instance
-    }
+internal fun nonexistentFile(): NonexistentFileArgument {
+    return NonexistentFileArgument.instance
 }

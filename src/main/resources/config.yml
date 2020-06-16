@@ -1,12 +1,29 @@
-sound: BLOCK_NOTE_BLOCK_XYLOPHONE
-item: STICK
-sample:
-  blockA:
-    - 0
-    - 4
-    - 0
-  blockB:
-    - 5
-    - 4
-    - 5
-  pitch: 1.5
+# Copyright (C) 2020 PatrickKR
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Contact me on <mailpatrickkr@gmail.com>
+
+sound: BLOCK_NOTE_BLOCK_XYLOPHONE     # default sound of the server's instrument
+item: STICK                           # default item of the server's instrument
+# sample:                             # name of the inst region (meaningless, but have to be unique)
+#   blockA:                           # first block pos (should be named blockA, no other names allowed)
+#     - 0                             # x value (in Integer)
+#     - 0                             # y value (in Integer)
+#     - 0                             # z value (in Integer)
+#   blockB:                           # second block pos (should be named blockB, no other names allowed)
+#     - 5                             # x value (in Integer)
+#     - 5                             # y value (in Integer)
+#     - 5                             # z value (in Integer)
+#   pitch: 0                          # pitch of the region. see https://minecraft.gamepedia.com/Note_Block#Notes

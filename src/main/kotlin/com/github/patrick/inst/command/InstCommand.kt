@@ -1,15 +1,31 @@
+/*
+ * Copyright (C) 2020 PatrickKR
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Contact me on <mailpatrickkr@gmail.com>
+ */
+
 package com.github.patrick.inst.command
 
 import com.github.noonmaru.kommand.KommandBuilder
 import com.github.noonmaru.kommand.KommandContext
-import com.github.noonmaru.kommand.argument.integer
 import com.github.noonmaru.kommand.argument.player
-import com.github.noonmaru.kommand.argument.string
 import com.github.patrick.inst.InstObject
 import com.github.patrick.inst.InstPlugin
 import com.github.patrick.inst.task.InstScheduler
 import com.google.gson.Gson
-import com.google.gson.internal.LinkedTreeMap
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Material
@@ -20,6 +36,8 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
+import kotlin.collections.HashMap
+import kotlin.streams.toList
 
 object InstCommand {
     private val gson = Gson()
@@ -28,60 +46,57 @@ object InstCommand {
         builder.run {
             then("item") {
                 require { isOp }
-                then("itemType" to InstArguments.material()) {
+                then("type" to material()) {
                     executes {
-                        it.parseOrNullArgument<Material>("itemType")?.run {
+                        it.parseArgument<Material>("type").run {
                             InstObject.instMaterial = this
                             it.send("Inst item is now $name")
-                        }?: it.send("Invalid material")
+                        }
                     }
                 }
             }
             then("sound") {
                 require { isOp || (this is Player && this == InstObject.instPlayer) }
                 then("type") {
-                    then("soundType" to InstArguments.sound()) {
+                    then("type" to noteSound()) {
                         executes {
-                            it.parseOrNullArgument<Sound>("soundType")?.run {
+                            it.parseArgument<Sound>("soundType").run {
                                 InstObject.instSound = this
-                                it.send("Inst sound is now ${name.removePrefix("BLOCK_NOTE_BLOCK_")}")
-                            }?: it.send("Invalid sound")
+                                it.send("Inst sound is now ${name.removePrefix(PREFIX).toLowerCase().split("_").stream().map(String::capitalize).toList().joinToString(separator = " ")}")
+                            }
                         }
                     }
                 }
                 then("bpm") {
-                    then("bpmCount" to integer()) {
+                    require { InstObject.instSchedulerTask == null }
+                    then("count" to rangedInt(1..1000)) {
                         executes {
-                            val bpmCount = it.getArgument("bpmCount").toInt()
-                            if (bpmCount in 1..1000) {
-                                InstObject.instBpm = bpmCount
-                                it.sender.sendMessage("Inst BPM is now $bpmCount")
-                            } else
-                                throw IllegalArgumentException("bpm count invalid")
+                            it.parseArgument<Int>("count").run {
+                                InstObject.instBpm = this
+                                it.send("Inst BPM is now $this")
+                            }
                         }
                     }
                 }
                 then("perBar") {
-                    then("perBarCount" to integer()) {
+                    require { InstObject.instSchedulerTask == null }
+                    then("count" to rangedInt(1..32)) {
                         executes {
-                            val perBarCount = it.getArgument("perBarCount").toInt()
-                            if (perBarCount in 1..16) {
-                                InstObject.instPerBar = perBarCount
-                                it.sender.sendMessage("Inst per-bar is now $perBarCount")
-                            } else
-                                throw IllegalArgumentException("per-bar count invalid")
+                            it.parseArgument<Int>("count").run {
+                                InstObject.instPerBar = this
+                                it.send("Inst per-bar is now $this")
+                            }
                         }
                     }
                 }
                 then("bar") {
-                    then("barCount" to integer()) {
+                    require { InstObject.instSchedulerTask == null }
+                    then("count" to rangedInt(1..32)) {
                         executes {
-                            val barCount = it.getArgument("barCount").toInt()
-                            if (barCount in 1..32) {
-                                InstObject.instBar = barCount
-                                it.sender.sendMessage("Inst total bars are now $barCount")
-                            } else
-                                throw IllegalArgumentException("total bar count invalid")
+                            it.parseArgument<Int>("count").run {
+                                InstObject.instPerBar = this
+                                it.send("Inst total bar is now $this")
+                            }
                         }
                     }
                 }
@@ -89,128 +104,83 @@ object InstCommand {
             then("record") {
                 require { isOp }
                 then("start") {
+                    require { InstObject.instSchedulerTask == null }
                     then("player" to player()) {
                         executes {
-                            if (InstObject.instSchedulerTask != null) {
-                                it.sender.sendMessage("recording in progress")
-                                return@executes
-                            }
-                            val player = Bukkit.getPlayerExact(it.getArgument("player"))
-                            player?.run {
-                                InstObject.instPlayer = this
-                                InstObject.instScheduler = InstScheduler()
-                                InstObject.instSchedulerTask = Bukkit.getServer().scheduler.runTaskTimer(InstPlugin.instance, Runnable {
-                                    InstObject.instScheduler?.run()
-                                }, 0, 1)
-                                foodLevel = 20
-                                gameMode = GameMode.ADVENTURE
-                                allowFlight = true
-                                isFlying = true
-                                it.sender.sendMessage("Inst recorder is now ${player.displayName}")
-                            }?: throw IllegalArgumentException("unknown player: ${it.getArgument("player")}")
+                            it.startRecord(it.parseArgument("player"))
                         }
                     }
                     executes {
                         require { this is Player }
-                        if (InstObject.instSchedulerTask != null) {
-                            it.sender.sendMessage("recording in progress")
-                            return@executes
-                        }
-                        val player = it.sender as Player
-                        InstObject.instPlayer = player
-                        Bukkit.getOnlinePlayers().forEach { online ->
-                            online.foodLevel = 20
-                            online.gameMode = GameMode.ADVENTURE
-                            online.allowFlight = true
-                            online.isFlying = true
-                        }
-                        InstObject.instScheduler = InstScheduler()
-                        InstObject.instSchedulerTask = Bukkit.getServer().scheduler.runTaskTimer(InstPlugin.instance, Runnable {
-                            InstObject.instScheduler?.run()
-                        }, 0, 1)
-                        player.sendMessage("Inst recorder is now ${player.displayName}")
+                        it.startRecord(it.sender as Player)
                     }
                 }
                 then("stop") {
+                    require { InstObject.instSchedulerTask != null }
                     executes {
-                        if (InstObject.instSchedulerTask == null) {
-                            it.sender.sendMessage("recording not in progress")
-                            return@executes
-                        }
-                        InstObject.instPlayer = null
                         InstObject.instScheduler?.stop()
-                        it.sender.sendMessage("Inst recorder is now stopped")
+                        it.send("Inst recording is now stopped")
                     }
                 }
                 then("load") {
-                    then("name" to InstArguments.loadFile()) {
+                    require { InstObject.instSchedulerTask == null }
+                    then("name" to existentFile()) {
                         executes {
-                            if (InstObject.instSchedulerTask != null) {
-                                it.send("recording in progress")
-                                return@executes
-                            }
-                            InstObject.instPlayer = null
-                            it.parseOrNullArgument<File>("name")?.let { file ->
-                                try {
-                                    @Suppress("UNCHECKED_CAST") val content = FileInputStream(file).use { stream ->
-                                        gson.fromJson(String(stream.readBytes()), HashMap::class.java)
-                                    } as HashMap<String, LinkedTreeMap<String, String>>
-                                    println("total ${content.count()}")
-                                    val task = Bukkit.getScheduler().runTaskTimer(InstPlugin.instance, object : Runnable {
-                                        private val total = content.count()
-                                        private var count = 0
-                                        override fun run() {
-                                            if (count <= total) {
-                                                println("$count : ${content[count.toString()] == null}")
-                                                Bukkit.getOnlinePlayers().forEach { player ->
-                                                    content[count.toString()]?.entries?.forEach { entry ->
-                                                        player.playSound(player.location, Sound.valueOf(entry.key), SoundCategory.MASTER, 100F, entry.value.toFloatOrNull()?: 1F)
-                                                    }
-                                                }
-                                                count++
+                            val file = it.parseArgument<File>("name")
+                            try {
+                                @Suppress("UNCHECKED_CAST")
+                                val content = FileInputStream(file).use { stream ->
+                                    gson.fromJson(String(stream.readBytes()), Map::class.java)
+                                } as Map<String, Map<String, String>>
+                                val task = Bukkit.getScheduler().runTaskTimer(InstPlugin.instance, object : Runnable {
+                                    private var count = 0
+                                    override fun run() {
+                                        Bukkit.getOnlinePlayers().forEach { player ->
+                                            content[count.toString()]?.entries?.forEach { entry ->
+                                                player.playSound(player.location, InstObject.instSoundMap.getOrDefault(entry.key, InstObject.instSound), SoundCategory.MASTER, 100F, entry.value.toFloatOrNull()?: 1F)
                                             }
                                         }
-                                    }, 0, 1)
-                                    Bukkit.getScheduler().runTaskLater(InstPlugin.instance, Runnable {
-                                        task.cancel()
-                                    }, content.count().toLong())
-                                    it.send("Inst now playing ${file.nameWithoutExtension}")
-                                } catch (exception: IOException) {
-                                    exception.printStackTrace()
-                                }
+                                        count++
+                                    }
+                                }, 0, 1)
+                                Bukkit.getScheduler().runTaskLater(InstPlugin.instance, Runnable {
+                                    task.cancel()
+                                }, content.count().toLong())
+                                it.send("Inst now playing ${file.nameWithoutExtension}")
+                            } catch (exception: IOException) {
+                                exception.printStackTrace()
                             }
                         }
                     }
                 }
                 then("save") {
-                    then("name" to string()) {
+                    then("name" to nonexistentFile()) {
+                        require { InstObject.instSchedulerTask != null }
                         executes {
-                            if (InstObject.instSchedulerTask == null) {
-                                it.sender.sendMessage("recording not in progress")
-                                return@executes
-                            }
-                            InstObject.instPlayer = null
-                            val name = it.parseArgument<String>("name")
                             InstObject.instScheduler?.run {
-                                try {
-                                    val map = HashMap<String, HashMap<String, String>>().apply {
-                                        music.forEach { entry ->
-                                            put(entry.key.toString(), HashMap<String, String>().apply {
-                                                entry.value.forEach { sound ->
-                                                    put(sound.key.name, sound.value.toString())
-                                                }
-                                            })
+                                it.send("Waiting for saving...")
+                                Bukkit.getScheduler().runTaskLater(InstPlugin.instance, Runnable {
+                                    val name = it.parseArgument<String>("name")
+                                    try {
+                                        val map = HashMap<String, HashMap<String, String>>().apply {
+                                            music.forEach { entry ->
+                                                put(entry.key.toString().removePrefix(PREFIX), HashMap<String, String>().apply {
+                                                    entry.value.forEach { sound ->
+                                                        put(sound.key.name, sound.value.toString())
+                                                    }
+                                                })
+                                            }
                                         }
+                                        FileOutputStream(File(InstPlugin.instance.dataFolder, "$name.$EXTENSION")).use { file ->
+                                            file.write(Gson().toJson(map).toByteArray())
+                                            it.send("Inst record is now saved at $name.$EXTENSION")
+                                        }
+                                    } catch (exception: IOException) {
+                                        exception.printStackTrace()
                                     }
-                                    FileOutputStream(File(InstPlugin.instance.dataFolder, "$name.json")).use { file ->
-                                        file.write(Gson().toJson(map).toByteArray())
-                                    }
-                                } catch (exception: IOException) {
-                                    exception.printStackTrace()
-                                }
-                                stop()
+                                    stop()
+                                }, (totalTicks / InstObject.instBar).toLong())
                             }
-                            it.sender.sendMessage("Inst record is now saved at $name.json")
                         }
                     }
                 }
@@ -218,65 +188,81 @@ object InstCommand {
             then("player") {
                 require { isOp }
                 then("set") {
+                    require { InstObject.instSchedulerTask == null }
                     then("player" to player()) {
                         executes {
-                            val player = Bukkit.getPlayerExact(it.getArgument("player"))
-                            player?.run {
-                                InstObject.instPlayer = this
-                                it.sender.sendMessage("Inst player is now ${player.displayName}")
-                            }?: throw IllegalArgumentException("unknown player: ${it.getArgument("player")}")
+                            it.setPlayer(it.parseArgument("player"))
                         }
                     }
                     executes {
                         require { this is Player }
-                        val player = it.sender as Player
-                        InstObject.instPlayer = player
-                        player.sendMessage("Inst player is now ${player.displayName}")
+                        it.setPlayer(it.sender as Player)
                     }
                 }
                 then("add") {
                     then("player" to player()) {
                         executes {
-                            val player = Bukkit.getPlayerExact(it.getArgument("player"))
-                            player?.run {
-                                InstObject.instSupporter.add(this)
-                                it.sender.sendMessage("${player.displayName} is now part of Inst supporters")
-                            }?: throw IllegalArgumentException("unknown player: ${it.getArgument("player")}")
+                            it.addPlayer(it.parseArgument("player"))
                         }
                     }
                     executes {
                         require { this is Player }
-                        val player = it.sender as Player
-                        InstObject.instSupporter.add(player)
-                        player.sendMessage("${player.displayName} is now part of Inst supporters")
+                        it.addPlayer(it.sender as Player)
                     }
                 }
                 then("remove") {
                     then("player" to player()) {
                         executes {
-                            val player = Bukkit.getPlayerExact(it.getArgument("player"))
-                            player?.run {
-                                InstObject.instSupporter.remove(this)
-                                it.sender.sendMessage("${player.displayName} is no longer part of Inst supporters")
-                            }?: throw IllegalArgumentException("unknown player: ${it.getArgument("player")}")
+                            it.removePlayer(it.parseArgument("player"))
                         }
                     }
                     executes {
                         require { this is Player }
-                        val player = it.sender as Player
-                        InstObject.instSupporter.remove(player)
-                        player.sendMessage("${player.displayName} is no longer part of Inst supporters")
+                        it.removePlayer(it.sender as Player)
                     }
                 }
                 then("clear") {
                     executes {
-                        InstObject.instPlayer = null
+                        if (InstObject.instScheduler == null) {
+                            InstObject.instPlayer = null
+                            it.send("Inst player is now null")
+                        }
                         InstObject.instSupporter.clear()
-                        it.sender.sendMessage("Inst player is now null")
+                        it.send("Inst supporter is now null")
                     }
                 }
             }
         }
+    }
+
+    private fun KommandContext.startRecord(player: Player) {
+        InstObject.instPlayer = player
+        Bukkit.getOnlinePlayers().forEach { online ->
+            online.foodLevel = 20
+            online.gameMode = GameMode.ADVENTURE
+            online.allowFlight = true
+            online.isFlying = true
+        }
+        InstObject.instScheduler = InstScheduler()
+        InstObject.instSchedulerTask = Bukkit.getServer().scheduler.runTaskTimer(InstPlugin.instance, Runnable {
+            InstObject.instScheduler?.run()
+        }, 0, 1)
+        send("Inst recorder is now ${player.displayName}")
+    }
+
+    private fun KommandContext.setPlayer(player: Player) {
+        InstObject.instPlayer = player
+        send("Inst player is now ${player.displayName}")
+    }
+
+    private fun KommandContext.addPlayer(player: Player) {
+        InstObject.instSupporter.add(player)
+        send("${player.displayName} is now part of Inst supporters")
+    }
+
+    private fun KommandContext.removePlayer(player: Player) {
+        InstObject.instSupporter.remove(player)
+        send("${player.displayName} is no longer part of Inst supporters")
     }
 
     private fun KommandContext.send(message: String) = sender.sendMessage(message)

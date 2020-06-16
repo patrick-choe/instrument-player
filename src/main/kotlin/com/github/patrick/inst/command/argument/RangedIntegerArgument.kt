@@ -17,6 +17,20 @@
  * Contact me on <mailpatrickkr@gmail.com>
  */
 
-package com.github.patrick.inst.util
+package com.github.patrick.inst.command.argument
 
-class InstBlock(val x: Int, val y: Int, val z: Int)
+import com.github.noonmaru.kommand.KommandContext
+import com.github.noonmaru.kommand.argument.KommandArgument
+
+internal class RangedIntegerArgument(range: IntRange = Int.MIN_VALUE..Int.MAX_VALUE) : KommandArgument<Int> {
+    override val parseFailMessage: String
+        get() = "${KommandArgument.TOKEN} not in range $minimum ~ $maximum"
+
+    private val minimum = range.first.coerceAtMost(range.last)
+
+    private val maximum = range.first.coerceAtLeast(range.last)
+
+    override fun parse(context: KommandContext, param: String): Int? {
+        return param.toIntOrNull()?.coerceIn(minimum, maximum)
+    }
+}

@@ -1,3 +1,22 @@
+/*
+ * Copyright (C) 2020 PatrickKR
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Contact me on <mailpatrickkr@gmail.com>
+ */
+
 package com.github.patrick.inst
 
 import com.github.patrick.inst.util.InstBlock
@@ -8,9 +27,8 @@ import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
 import kotlin.math.pow
-import kotlin.math.sign
 
-class InstConfig(private val file: File) : Runnable {
+internal class InstConfig(private val file: File) : Runnable {
     private var lastModified: Long = 0
     override fun run() {
         val last = file.lastModified()
@@ -42,12 +60,12 @@ class InstConfig(private val file: File) : Runnable {
                         blockB = InstBlock(it[0], it[1], it[2])
                     }
                     val pitch = getInt("pitch")
-                    InstObject.instBoxSet.add(InstBox(blockA, blockB, 2F.pow(pitch.toFloat() / 12)))
+                    InstObject.instBoxSet.add(InstBox(blockA, blockB, 2F.pow((pitch - 12).toFloat() / 12)))
                 }
             }
             InstObject.instSound = sound
             InstObject.instMaterial = material
-            println("Inst Config reloaded")
+            println("Inst config reloaded")
         }
     }
 
