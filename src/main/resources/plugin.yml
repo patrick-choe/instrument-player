@@ -21,7 +21,7 @@ main: com.github.patrick.inst.InstPlugin
 depend: [Kotlin]
 author: PatrickKR
 api-version: "1.14"
-version: 0.2.2-SNAPSHOT
+version: 0.2.3-SNAPSHOT
 commands:
   inst:
     usage: /<command> [Player]

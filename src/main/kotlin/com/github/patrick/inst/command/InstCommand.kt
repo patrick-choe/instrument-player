@@ -127,8 +127,9 @@ object InstCommand {
                             }
                         }
                         executes {
-                            require { this is Player }
-                            it.startRecord(it.sender as Player)
+                            it.runIfPlayer {
+                                it.startRecord(this)
+                            }
                         }
                     }
                     then("stop") {
@@ -216,8 +217,9 @@ object InstCommand {
                             }
                         }
                         executes {
-                            require { this is Player }
-                            it.setPlayer(it.sender as Player)
+                            it.runIfPlayer {
+                                it.setPlayer(this)
+                            }
                         }
                     }
                     then("add") {
@@ -229,8 +231,9 @@ object InstCommand {
                             }
                         }
                         executes {
-                            require { this is Player }
-                            it.addPlayer(it.sender as Player)
+                            it.runIfPlayer {
+                                it.addPlayer(this)
+                            }
                         }
                     }
                     then("remove") {
@@ -242,8 +245,9 @@ object InstCommand {
                             }
                         }
                         executes {
-                            require { this is Player }
-                            it.removePlayer(it.sender as Player)
+                            it.runIfPlayer {
+                                it.removePlayer(this)
+                            }
                         }
                     }
                     then("clear") {
@@ -255,8 +259,11 @@ object InstCommand {
                         }
                     }
                     executes {
-                        instPlayer?.run { it.send("현재 연주자: $displayName") }
-                        it.send("현재 사용자: ${instSupporter.joinToString()}")
+                        instPlayer?.run {
+                            it.send("현재 연주자: $displayName")
+                        }
+                        if (instSupporter.isNotEmpty())
+                            it.send("현재 사용자: ${instSupporter.joinToString()}")
                     }
                 }
             }
@@ -305,4 +312,9 @@ object InstCommand {
     }
 
     private fun KommandContext.send(message: String) = sender.sendMessage(message)
+
+    private fun KommandContext.runIfPlayer(block: Player.() -> Unit) {
+        if (sender is Player)
+            block.invoke(sender as Player)
+    }
 }
