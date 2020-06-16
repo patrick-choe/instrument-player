@@ -38,12 +38,12 @@ dependencies {
 }
 
 tasks {
-    shadowJar {
-        archiveClassifier.set("dist")
-    }
-
     compileKotlin {
         kotlinOptions.jvmTarget = "1.8"
+    }
+
+    shadowJar {
+        archiveClassifier.set("dist")
     }
 
     create<Copy>("distJar") {
