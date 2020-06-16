@@ -26,7 +26,7 @@ import org.bukkit.Material
 
 internal class MaterialArgument : KommandArgument<Material> {
     override val parseFailMessage: String
-        get() = "Material ${KommandArgument.TOKEN} not found"
+        get() = "${KommandArgument.TOKEN} <-- 알 수 없는 아이템 입니다."
 
     override fun parse(context: KommandContext, param: String): Material? {
         return try {

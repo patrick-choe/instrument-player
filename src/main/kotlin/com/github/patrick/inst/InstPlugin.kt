@@ -20,6 +20,7 @@
 package com.github.patrick.inst
 
 import com.github.noonmaru.kommand.kommand
+import com.github.patrick.inst.command.FOLDER
 import com.github.patrick.inst.command.InstCommand
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
@@ -32,6 +33,7 @@ class InstPlugin : JavaPlugin() {
 
     @Suppress("UsePropertyAccessSyntax")
     override fun onEnable() {
+        instance = this
         saveDefaultConfig()
         server.pluginManager.registerEvents(InstListener(), this)
         kommand {
@@ -40,7 +42,7 @@ class InstPlugin : JavaPlugin() {
             }
         }
         server.scheduler.runTaskTimer(this, InstConfig(File(dataFolder, "config.yml")), 0, 1)
-        logger.info("Inst Plugin v0.2-SNAPSHOT")
-        instance = this
+        FOLDER.mkdir()
+        logger.info("Inst Plugin v0.2.1-SNAPSHOT")
     }
 }

@@ -22,15 +22,20 @@ package com.github.patrick.inst.command.argument
 import com.github.noonmaru.kommand.KommandContext
 import com.github.noonmaru.kommand.argument.KommandArgument
 
-internal class RangedIntegerArgument(range: IntRange = Int.MIN_VALUE..Int.MAX_VALUE) : KommandArgument<Int> {
+internal class RangedIntegerArgument(private val range: IntRange = Int.MIN_VALUE..Int.MAX_VALUE) : KommandArgument<Int> {
     override val parseFailMessage: String
-        get() = "${KommandArgument.TOKEN} not in range $minimum ~ $maximum"
+        get() = "${KommandArgument.TOKEN} <-- $minimum ~ $maximum 범위에 없는 정수 입니다."
 
     private val minimum = range.first.coerceAtMost(range.last)
 
     private val maximum = range.first.coerceAtLeast(range.last)
 
     override fun parse(context: KommandContext, param: String): Int? {
-        return param.toIntOrNull()?.coerceIn(minimum, maximum)
+        return param.toIntOrNull()?.run {
+            if (this in range)
+                this
+            else
+                null
+        }
     }
 }

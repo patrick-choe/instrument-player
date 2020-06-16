@@ -30,6 +30,7 @@ import kotlin.math.pow
 
 internal class InstConfig(private val file: File) : Runnable {
     private var lastModified: Long = 0
+
     override fun run() {
         val last = file.lastModified()
         if (last != lastModified) {
@@ -38,12 +39,12 @@ internal class InstConfig(private val file: File) : Runnable {
             val sound = try {
                 Sound.valueOf(requireNotNull(config.getString("sound")))
             } catch (e: IllegalArgumentException) {
-                throw IllegalArgumentException("invalid sound")
+                throw IllegalArgumentException("유효하지 않는 악기입니다.")
             }
             val material = try {
                 Material.valueOf(requireNotNull(config.getString("item")))
             } catch (e: IllegalArgumentException) {
-                throw IllegalArgumentException("invalid item")
+                throw IllegalArgumentException("유효하지 않는 아이템 입니다.")
             }
             InstObject.instBoxSet.clear()
             config.getValues(false).forEach { entry ->
@@ -52,11 +53,11 @@ internal class InstConfig(private val file: File) : Runnable {
                     val blockA: InstBlock
                     val blockB: InstBlock
                     getIntegerList("blockA").let {
-                        if (it.count() != 3) throw IllegalArgumentException("invalid ${entry.key}: blockA")
+                        if (it.count() != 3) throw IllegalArgumentException("유효하지 않는 구역 ${entry.key}: blockA")
                         blockA = InstBlock(it[0], it[1], it[2])
                     }
                     getIntegerList("blockB").let {
-                        if (it.count() != 3) throw IllegalArgumentException("invalid ${entry.key}: blockB")
+                        if (it.count() != 3) throw IllegalArgumentException("유효하지 않는 구역 ${entry.key}: blockB")
                         blockB = InstBlock(it[0], it[1], it[2])
                     }
                     val pitch = getInt("pitch")
@@ -65,7 +66,7 @@ internal class InstConfig(private val file: File) : Runnable {
             }
             InstObject.instSound = sound
             InstObject.instMaterial = material
-            println("Inst config reloaded")
+            println("설정을 불러왔습니다.")
         }
     }
 

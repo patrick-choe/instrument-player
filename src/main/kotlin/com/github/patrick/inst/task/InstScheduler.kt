@@ -28,7 +28,7 @@ class InstScheduler : Runnable {
     var instTask: InstTask? = null
         private set
 
-    val totalTicks = ((1200.0 / InstObject.instBpm).toInt() * InstObject.instPerBar * InstObject.instBar)
+    val totalTicks = (1200.0 * InstObject.instPerBar * InstObject.instBar/ InstObject.instBpm).toInt()
 
     val music = HashMap<Int, EnumMap<Sound, Float>>()
 

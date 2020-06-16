@@ -40,7 +40,7 @@ object InstObject {
         internal set
     var instPerBar = 4
         internal set
-    var instBar = 8
+    var instBar = 4
         internal set
 
     var instSchedulerTask: BukkitTask? = null

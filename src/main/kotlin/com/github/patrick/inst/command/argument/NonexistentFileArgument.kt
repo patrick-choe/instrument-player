@@ -21,15 +21,15 @@ package com.github.patrick.inst.command.argument
 
 import com.github.noonmaru.kommand.KommandContext
 import com.github.noonmaru.kommand.argument.KommandArgument
-import com.github.patrick.inst.InstPlugin
 import com.github.patrick.inst.command.EXTENSION
+import com.github.patrick.inst.command.FOLDER
 
 internal class NonexistentFileArgument : KommandArgument<String> {
     override val parseFailMessage: String
-        get() = "File ${KommandArgument.TOKEN}.$EXTENSION already exists"
+        get() = "${KommandArgument.TOKEN}.$EXTENSION <-- 이미 존재하는 파일 입니다."
 
     override fun parse(context: KommandContext, param: String): String? {
-        return InstPlugin.instance.dataFolder.listFiles {
+        return FOLDER.listFiles {
             file -> file.nameWithoutExtension == param && file.extension == EXTENSION
         }?.run {
             if (isEmpty()) param else null

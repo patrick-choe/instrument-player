@@ -22,16 +22,16 @@ package com.github.patrick.inst.command.argument
 import com.github.noonmaru.kommand.KommandContext
 import com.github.noonmaru.kommand.argument.KommandArgument
 import com.github.noonmaru.kommand.argument.suggestions
-import com.github.patrick.inst.InstPlugin
 import com.github.patrick.inst.command.EXTENSION
+import com.github.patrick.inst.command.FOLDER
 import java.io.File
 
 internal class ExistentFileArgument : KommandArgument<File> {
     override val parseFailMessage: String
-        get() = "File ${KommandArgument.TOKEN}.$EXTENSION not found"
+        get() = "${KommandArgument.TOKEN}.$EXTENSION <-- 찾을 수 없는 파일 입니다."
 
     override fun parse(context: KommandContext, param: String): File? {
-        return InstPlugin.instance.dataFolder.listFiles {
+        return FOLDER.listFiles {
             file -> file.nameWithoutExtension == param && file.extension == EXTENSION
         }?.run {
             if (isNotEmpty()) first() else null
@@ -39,7 +39,7 @@ internal class ExistentFileArgument : KommandArgument<File> {
     }
 
     override fun listSuggestion(context: KommandContext, target: String): Collection<String> {
-        return (InstPlugin.instance.dataFolder.listFiles {
+        return (FOLDER.listFiles {
             file -> file.extension == EXTENSION
         }?: emptyArray()).toList().suggestions(target) { it.nameWithoutExtension }
     }
