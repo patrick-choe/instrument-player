@@ -31,7 +31,6 @@ class InstPlugin : JavaPlugin() {
             private set
     }
 
-    @Suppress("UsePropertyAccessSyntax")
     override fun onEnable() {
         instance = this
         saveDefaultConfig()

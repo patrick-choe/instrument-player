@@ -40,7 +40,7 @@ object InstCommand {
     private val GSON = Gson()
 
     internal fun register(builder: KommandBuilder) {
-        InstObject.run {
+        with(InstObject) {
             builder.run {
                 then("item") {
                     require { isOp }
