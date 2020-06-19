@@ -101,13 +101,13 @@ object InstCommand {
                         then("count" to rangedInt(1..32)) {
                             executes {
                                 it.parseOrWarnArgument<Int>("count")?.run {
-                                    instPerBar = this
+                                    instBar = this
                                     it.send("마디 수가 ${this}로 설정되었습니다.")
                                 }
                             }
                         }
                         executes {
-                            it.send("현재 마디 수: $instPerBar")
+                            it.send("현재 마디 수: $instBar")
                         }
                     }
                 }
