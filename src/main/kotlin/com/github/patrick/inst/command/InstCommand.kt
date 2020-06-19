@@ -178,9 +178,9 @@ object InstCommand {
                                         it.parseOrNullArgument<String>("name")?.let { name ->
                                             val map = HashMap<String, HashMap<String, String>>().apply {
                                                 music.forEach { entry ->
-                                                    put(entry.key.toString().removePrefix(PREFIX), HashMap<String, String>().apply {
+                                                    put(entry.key.toString(), HashMap<String, String>().apply {
                                                         entry.value.forEach { sound ->
-                                                            put(sound.key.name, sound.value.toString())
+                                                            put(sound.key.name.removePrefix(PREFIX), sound.value.toString())
                                                         }
                                                     })
                                                 }
