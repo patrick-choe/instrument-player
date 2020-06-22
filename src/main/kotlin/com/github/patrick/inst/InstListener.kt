@@ -23,6 +23,7 @@ import com.github.patrick.inst.task.InstLoopTask
 import org.bukkit.Bukkit
 import org.bukkit.FluidCollisionMode
 import org.bukkit.SoundCategory
+import org.bukkit.World
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.FoodLevelChangeEvent
@@ -31,6 +32,8 @@ import org.bukkit.event.player.PlayerInteractEvent
 internal class InstListener : Listener {
     @EventHandler
     fun onInteract(event: PlayerInteractEvent) {
+        if (event.player.world.environment != World.Environment.NORMAL)
+            return
         event.item?.run {
             with(InstObject) {
                 if (type != instMaterial)

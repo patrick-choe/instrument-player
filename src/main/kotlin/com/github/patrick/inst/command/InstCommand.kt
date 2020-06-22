@@ -56,6 +56,9 @@ object InstCommand {
                             }
                         }
                     }
+                    executes {
+                        it.send("현재 아이템: ${instMaterial.name.toLowerCase().capitalize()}")
+                    }
                 }
                 then("sound") {
                     require { isOp || this == instPlayer }
