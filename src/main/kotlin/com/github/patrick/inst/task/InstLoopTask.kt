@@ -28,7 +28,7 @@ import org.bukkit.boss.BarColor
 import org.bukkit.boss.BarStyle
 
 class InstLoopTask(private val scheduler: InstScheduler) : InstTask {
-    val bar = Bukkit.createBossBar(NamespacedKey(InstPlugin.instance, "bar"), InstObject.instPlayer?.name, BarColor.PURPLE, BarStyle.SOLID)
+    val bar = Bukkit.createBossBar(NamespacedKey(InstPlugin.INSTANCE, "bar"), InstObject.instPlayer?.name, BarColor.PURPLE, BarStyle.SOLID)
     private val total = scheduler.totalTicks
     private var ticks = total
     var remain = 0

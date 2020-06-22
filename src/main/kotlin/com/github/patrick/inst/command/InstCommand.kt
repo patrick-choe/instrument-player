@@ -21,12 +21,16 @@ package com.github.patrick.inst.command
 
 import com.github.noonmaru.kommand.KommandBuilder
 import com.github.noonmaru.kommand.KommandContext
-import com.github.noonmaru.kommand.argument.player
 import com.github.patrick.inst.InstObject
 import com.github.patrick.inst.InstPlugin
 import com.github.patrick.inst.task.InstScheduler
 import com.google.gson.Gson
-import org.bukkit.*
+import org.bukkit.Bukkit
+import org.bukkit.ChatColor
+import org.bukkit.GameMode
+import org.bukkit.Material
+import org.bukkit.Sound
+import org.bukkit.SoundCategory
 import org.bukkit.entity.Player
 import java.io.File
 import java.io.FileInputStream
@@ -145,7 +149,7 @@ object InstCommand {
                                         val content = FileInputStream(file).use { stream ->
                                             GSON.fromJson(String(stream.readBytes()), Map::class.java)
                                         } as Map<String, Map<String, String>>
-                                        val task = Bukkit.getScheduler().runTaskTimer(InstPlugin.instance, object : Runnable {
+                                        val task = Bukkit.getScheduler().runTaskTimer(InstPlugin.INSTANCE, object : Runnable {
                                             private var count = 0
 
                                             override fun run() {
@@ -157,7 +161,7 @@ object InstCommand {
                                                 count++
                                             }
                                         }, 0, 1)
-                                        Bukkit.getScheduler().runTaskLater(InstPlugin.instance, Runnable {
+                                        Bukkit.getScheduler().runTaskLater(InstPlugin.INSTANCE, Runnable {
                                             task.cancel()
                                         }, content.count().toLong())
                                         it.send("${file.nameWithoutExtension} 파일의 녹음을 재생합니다.")
@@ -174,7 +178,7 @@ object InstCommand {
                             executes {
                                 instScheduler?.run {
                                     it.send("파일 저장 기다리는 중...")
-                                    Bukkit.getScheduler().runTaskLater(InstPlugin.instance, Runnable {
+                                    Bukkit.getScheduler().runTaskLater(InstPlugin.INSTANCE, Runnable {
                                         it.parseOrNullArgument<String>("name")?.let { name ->
                                             val map = HashMap<String, HashMap<String, String>>().apply {
                                                 music.forEach { entry ->
@@ -278,7 +282,7 @@ object InstCommand {
         InstObject.run {
             instPlayer = player
             instScheduler = InstScheduler()
-            instSchedulerTask = Bukkit.getServer().scheduler.runTaskTimer(InstPlugin.instance, Runnable {
+            instSchedulerTask = Bukkit.getServer().scheduler.runTaskTimer(InstPlugin.INSTANCE, Runnable {
                 instScheduler?.run()
             }, 0, 1)
             send("${player.displayName}의 녹음이 시작되었습니다.")

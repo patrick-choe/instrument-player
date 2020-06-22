@@ -50,7 +50,7 @@ internal class InstListener : Listener {
                             instScheduler?.run {
                                 if (isPlaying) {
                                     val current = (instTask as InstLoopTask).remain
-                                    Bukkit.getScheduler().runTaskLater(InstPlugin.instance, Runnable {
+                                    Bukkit.getScheduler().runTaskLater(InstPlugin.INSTANCE, Runnable {
                                         music[current]?.put(instSound, box.pitch)
                                     }, (totalTicks / instBar).toLong())
                                 }

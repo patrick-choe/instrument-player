@@ -27,7 +27,7 @@ import org.bukkit.Sound
 
 internal class NoteSoundArgument : KommandArgument<Sound> {
     override val parseFailMessage: String
-        get() = "${KommandArgument.TOKEN} <-- 알 수 없는 악기 입니다."
+        get() = "${KommandArgument.TOKEN} <-- 찾을 수 없는 악기 입니다."
 
     override fun parse(context: KommandContext, param: String): Sound? {
         return InstObject.instSoundMap[param]

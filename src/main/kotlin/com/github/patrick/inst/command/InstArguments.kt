@@ -22,6 +22,7 @@ package com.github.patrick.inst.command
 import com.github.noonmaru.kommand.KommandContext
 import com.github.noonmaru.kommand.argument.KommandArgument
 import com.github.patrick.inst.InstPlugin
+import com.github.patrick.inst.command.argument.*
 import com.github.patrick.inst.command.argument.ExistentFileArgument
 import com.github.patrick.inst.command.argument.MaterialArgument
 import com.github.patrick.inst.command.argument.NonexistentFileArgument
@@ -33,10 +34,14 @@ import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 
 internal const val EXTENSION = "json"
-internal val FOLDER = File(InstPlugin.instance.dataFolder, "records")
+internal val FOLDER = File(InstPlugin.INSTANCE.dataFolder, "records")
 
 internal fun rangedInt(range: IntRange): RangedIntegerArgument {
     return RangedIntegerArgument(range)
+}
+
+internal fun player(): PlayerArgument {
+    return PlayerArgument.instance
 }
 
 internal fun material(): MaterialArgument {

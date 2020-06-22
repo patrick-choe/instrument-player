@@ -23,7 +23,7 @@ plugins {
 }
 
 group = "com.github.patrick-mc"
-version = "0.2.3-SNAPSHOT"
+version = "0.3-SNAPSHOT"
 
 repositories {
     maven("https://repo.maven.apache.org/maven2/")

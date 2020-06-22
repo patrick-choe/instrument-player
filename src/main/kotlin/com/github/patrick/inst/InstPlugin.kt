@@ -27,21 +27,21 @@ import java.io.File
 
 class InstPlugin : JavaPlugin() {
     companion object {
-        lateinit var instance: InstPlugin
+        lateinit var INSTANCE: InstPlugin
             private set
     }
 
     override fun onEnable() {
-        instance = this
+        INSTANCE = this
+        FOLDER.mkdir()
         saveDefaultConfig()
+        server.scheduler.runTaskTimer(this, InstConfig(File(dataFolder, "config.yml")), 0, 1)
         server.pluginManager.registerEvents(InstListener(), this)
         kommand {
             register("inst") {
                 InstCommand.register(this)
             }
         }
-        server.scheduler.runTaskTimer(this, InstConfig(File(dataFolder, "config.yml")), 0, 1)
-        FOLDER.mkdir()
-        logger.info("Inst Plugin v0.2.3-SNAPSHOT")
+        logger.info("Inst Plugin v0.3-SNAPSHOT")
     }
 }
