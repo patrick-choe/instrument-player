@@ -52,7 +52,7 @@ object InstCommand {
                         executes {
                             it.parseOrWarnArgument<Material>("type")?.run {
                                 instMaterial = this
-                                it.send("아이템이 ${name}로 설정되었습니다.")
+                                it.send("아이템이 ${name.toLowerCase().capitalize()}로 설정되었습니다.")
                             }
                         }
                     }
