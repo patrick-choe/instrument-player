@@ -19,4 +19,22 @@
 
 package com.github.patrick.inst.util
 
-class InstBlock(val x: Int, val y: Int, val z: Int)
+import org.bukkit.block.Block
+import kotlin.math.pow
+
+internal data class InstBlock(val x: Int, val y: Int, val z: Int)
+
+internal class InstBox(blockA: InstBlock, blockB: InstBlock, level: Int) {
+    private val minX = blockA.x.coerceAtMost(blockB.x)
+    private val minY = blockA.y.coerceAtMost(blockB.y)
+    private val minZ = blockA.z.coerceAtMost(blockB.z)
+    private val maxX = blockA.x.coerceAtLeast(blockB.x)
+    private val maxY = blockA.y.coerceAtLeast(blockB.y)
+    private val maxZ = blockA.z.coerceAtLeast(blockB.z)
+
+    internal val pitch = 2F.pow((level - 12).toFloat() / 12)
+
+    fun contains(block: Block): Boolean {
+        return block.x in minX..maxX && block.y in minY..maxY && block.z in minZ..maxZ
+    }
+}

@@ -17,11 +17,11 @@
 
 name: InstPlayer
 description: Instrument Player for Paper 1.14 +
-main: com.github.patrick.inst.InstPlugin
+main: com.github.patrick.inst.plugin.InstPlugin
 depend: [Kotlin]
 author: PatrickKR
 api-version: "1.14"
-version: 0.3-SNAPSHOT
+version: 0.4-SNAPSHOT
 commands:
   inst:
     usage: /<command> [Player]

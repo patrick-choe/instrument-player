@@ -21,14 +21,14 @@ package com.github.patrick.inst.command
 
 import com.github.noonmaru.kommand.KommandContext
 import com.github.noonmaru.kommand.argument.KommandArgument
-import com.github.patrick.inst.InstPlugin
-import com.github.patrick.inst.command.argument.*
-import com.github.patrick.inst.command.argument.ExistentFileArgument
-import com.github.patrick.inst.command.argument.MaterialArgument
-import com.github.patrick.inst.command.argument.NonexistentFileArgument
-import com.github.patrick.inst.command.argument.NoteSoundArgument
-import com.github.patrick.inst.command.argument.RangedIntegerArgument
+import com.github.noonmaru.kommand.argument.suggestions
+import com.github.patrick.inst.INST_SOUND_MAP
+import com.github.patrick.inst.plugin.InstPlugin
+import org.bukkit.Bukkit
 import org.bukkit.ChatColor
+import org.bukkit.Material
+import org.bukkit.Sound
+import org.bukkit.entity.Player
 import java.io.File
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
@@ -36,8 +36,8 @@ import java.lang.reflect.Modifier
 internal const val EXTENSION = "json"
 internal val FOLDER = File(InstPlugin.INSTANCE.dataFolder, "records")
 
-internal fun rangedInt(range: IntRange): RangedIntegerArgument {
-    return RangedIntegerArgument(range)
+internal fun rangedInt(range: IntRange): RangedIntArgument {
+    return RangedIntArgument(range)
 }
 
 internal fun player(): PlayerArgument {
@@ -48,8 +48,8 @@ internal fun material(): MaterialArgument {
     return MaterialArgument.instance
 }
 
-internal fun noteSound(): NoteSoundArgument {
-    return NoteSoundArgument.instance
+internal fun sound(): SoundArgument {
+    return SoundArgument.instance
 }
 
 internal fun existentFile(): ExistentFileArgument {
@@ -65,18 +65,136 @@ internal fun <T> KommandContext.parseOrWarnArgument(name: String) : T? {
         return this
     }
 
-    val field = javaClass.getDeclaredField("argumentsByName")
-    field.isAccessible = true
+    val field = javaClass.getDeclaredField("argumentsByName").apply {
+        isAccessible = true
+    }
 
-    val modifiersField = Field::class.java.getDeclaredField("modifiers")
-    modifiersField.isAccessible = true
-    modifiersField.setInt(field, field.modifiers and Modifier.FINAL.inv())
+    Field::class.java.getDeclaredField("modifiers").apply {
+        isAccessible = true
+        setInt(field, field.modifiers and Modifier.FINAL.inv())
+    }
 
     @Suppress("UNCHECKED_CAST")
     (field.get(this) as Map<String, Pair<String, KommandArgument<*>>>).run {
         get(name)?.run {
-            sender.sendMessage("${ChatColor.RED}WARN: ${second.parseFailMessage.replace(KommandArgument.TOKEN, first)}")
+            send("${ChatColor.RED}WARN: ${second.parseFailMessage.replace(KommandArgument.TOKEN, first)}")
         }?: throw IllegalArgumentException("[$name] is unknown argument name")
     }
     return null
+}
+
+internal class RangedIntArgument(private val range: IntRange = Int.MIN_VALUE..Int.MAX_VALUE) : KommandArgument<Int> {
+    override val parseFailMessage: String
+        get() = "${KommandArgument.TOKEN} <-- ${range.first.coerceAtMost(range.last)} ~ ${range.first.coerceAtLeast(range.last)} 범위에 없는 정수 입니다."
+
+    override fun parse(context: KommandContext, param: String): Int? {
+        return param.toIntOrNull()?.run {
+            if (this in range) this else null
+        }
+    }
+}
+
+internal class PlayerArgument : KommandArgument<Player> {
+    override val parseFailMessage: String
+        get() = "${KommandArgument.TOKEN} <-- 찾을 수 없는 플레이어 입니다."
+
+    override fun parse(context: KommandContext, param: String): Player? {
+        return Bukkit.getPlayerExact(param)
+    }
+
+    override fun listSuggestion(context: KommandContext, target: String): Collection<String> {
+        return Bukkit.getOnlinePlayers().suggestions(target) { it.name }
+    }
+
+    companion object {
+        internal val instance by lazy {
+            PlayerArgument()
+        }
+    }
+}
+
+internal class SoundArgument : KommandArgument<Sound> {
+    override val parseFailMessage: String
+        get() = "${KommandArgument.TOKEN} <-- 찾을 수 없는 악기 입니다."
+
+    override fun parse(context: KommandContext, param: String): Sound? {
+        return INST_SOUND_MAP[param]
+    }
+
+    override fun listSuggestion(context: KommandContext, target: String): Collection<String> {
+        return INST_SOUND_MAP.keys.suggestions(target)
+    }
+
+    companion object {
+        internal val instance by lazy {
+            SoundArgument()
+        }
+    }
+}
+
+internal class MaterialArgument : KommandArgument<Material> {
+    override val parseFailMessage: String
+        get() = "${KommandArgument.TOKEN} <-- 알 수 없는 아이템 입니다."
+
+    override fun parse(context: KommandContext, param: String): Material? {
+        return try {
+            Material.valueOf(param)
+        } catch (exception: IllegalArgumentException) {
+            null
+        }
+    }
+
+    override fun listSuggestion(context: KommandContext, target: String): Collection<String> {
+        return Material.values().toList().suggestions(target) { it.name }
+    }
+
+    companion object {
+        internal val instance by lazy {
+            MaterialArgument()
+        }
+    }
+}
+
+internal class ExistentFileArgument : KommandArgument<File> {
+    override val parseFailMessage: String
+        get() = "${KommandArgument.TOKEN}.$EXTENSION <-- 찾을 수 없는 파일 입니다."
+
+    override fun parse(context: KommandContext, param: String): File? {
+        return FOLDER.listFiles {
+            file -> file.nameWithoutExtension == param && file.extension == EXTENSION
+        }?.run {
+            if (isNotEmpty()) first() else null
+        }
+    }
+
+    override fun listSuggestion(context: KommandContext, target: String): Collection<String> {
+        return (FOLDER.listFiles {
+            file -> file.extension == EXTENSION
+        }?: emptyArray()).toList().suggestions(target) { it.nameWithoutExtension }
+    }
+
+    companion object {
+        internal val instance by lazy {
+            ExistentFileArgument()
+        }
+    }
+}
+
+internal class NonexistentFileArgument : KommandArgument<String> {
+    override val parseFailMessage: String
+        get() = "${KommandArgument.TOKEN}.$EXTENSION <-- 이미 존재하는 파일 입니다."
+
+    override fun parse(context: KommandContext, param: String): String? {
+        return FOLDER.listFiles {
+            file -> file.nameWithoutExtension == param && file.extension == EXTENSION
+        }?.run {
+            if (isEmpty()) param else null
+        }
+    }
+
+    companion object {
+        internal val instance by lazy {
+            NonexistentFileArgument()
+        }
+    }
 }
