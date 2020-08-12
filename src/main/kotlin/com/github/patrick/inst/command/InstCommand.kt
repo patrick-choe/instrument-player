@@ -28,26 +28,17 @@ import com.github.patrick.inst.INST_PER_BAR
 import com.github.patrick.inst.INST_PLAYER
 import com.github.patrick.inst.INST_SCHEDULER
 import com.github.patrick.inst.INST_SOUND
-import com.github.patrick.inst.INST_SOUND_MAP
 import com.github.patrick.inst.INST_TASK
 import com.github.patrick.inst.plugin.InstPlugin
 import com.github.patrick.inst.task.InstScheduler
-import com.google.gson.Gson
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.Sound
-import org.bukkit.SoundCategory
 import org.bukkit.entity.Player
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.IOException
-import kotlin.collections.HashMap
 
 private const val PREFIX = "BLOCK_NOTE_BLOCK_"
-private val GSON = Gson()
 
 internal fun register(builder: KommandBuilder) {
     builder.run {
@@ -147,71 +138,71 @@ internal fun register(builder: KommandBuilder) {
                     it.send("녹음이 중지되었습니다.")
                 }
             }
-            then("load") {
-                require { INST_TASK == null }
-                then("name" to existentFile()) {
-                    executes {
-                        it.parseOrWarnArgument<File>("name")?.let { file ->
-                            try {
-                                @Suppress("UNCHECKED_CAST")
-                                val content = FileInputStream(file).use { stream ->
-                                    GSON.fromJson(String(stream.readBytes()), Map::class.java)
-                                } as Map<String, Map<String, String>>
-                                val task = Bukkit.getScheduler().runTaskTimer(InstPlugin.INSTANCE, object : Runnable {
-                                    private var count = 0
-
-                                    override fun run() {
-                                        Bukkit.getOnlinePlayers().forEach { player ->
-                                            content[count.toString()]?.entries?.forEach { entry ->
-                                                player.playSound(player.location, INST_SOUND_MAP.getOrDefault(entry.key, INST_SOUND), SoundCategory.MASTER, 100F, entry.value.toFloatOrNull()?: 1F)
-                                            }
-                                        }
-                                        count++
-                                    }
-                                }, 0, 1)
-                                Bukkit.getScheduler().runTaskLater(InstPlugin.INSTANCE, Runnable {
-                                    task.cancel()
-                                }, content.count().toLong())
-                                it.send("${file.nameWithoutExtension} 파일의 녹음을 재생합니다.")
-                            } catch (exception: IOException) {
-                                exception.printStackTrace()
-                            }
-                        }
-                    }
-                }
-            }
-            then("save") {
-                then("name" to nonexistentFile()) {
-                    require { INST_TASK != null }
-                    executes {
-                        INST_SCHEDULER?.run {
-                            it.send("파일 저장 기다리는 중...")
-                            Bukkit.getScheduler().runTaskLater(InstPlugin.INSTANCE, Runnable {
-                                it.parseOrNullArgument<String>("name")?.let { name ->
-                                    val map = HashMap<String, HashMap<String, String>>().apply {
-                                        music.forEach { entry ->
-                                            put(entry.key.toString(), HashMap<String, String>().apply {
-                                                entry.value.forEach { sound ->
-                                                    put(sound.key.name.removePrefix(PREFIX), sound.value.toString())
-                                                }
-                                            })
-                                        }
-                                    }
-                                    try {
-                                        FileOutputStream(File(FOLDER, "$name.$EXTENSION")).use { file ->
-                                            file.write(Gson().toJson(map).toByteArray())
-                                            it.send("녹음이 $name.$EXTENSION 파일에 저장되었습니다.")
-                                        }
-                                    } catch (exception: IOException) {
-                                        exception.printStackTrace()
-                                    }
-                                    stop()
-                                }
-                            }, singleTicks)
-                        }
-                    }
-                }
-            }
+//            then("load") {
+//                require { INST_TASK == null }
+//                then("name" to existentFile()) {
+//                    executes {
+//                        it.parseOrWarnArgument<File>("name")?.let { file ->
+//                            try {
+//                                @Suppress("UNCHECKED_CAST")
+//                                val content = FileInputStream(file).use { stream ->
+//                                    GSON.fromJson(String(stream.readBytes()), Map::class.java)
+//                                } as Map<String, Map<String, String>>
+//                                val task = Bukkit.getScheduler().runTaskTimer(InstPlugin.INSTANCE, object : Runnable {
+//                                    private var count = 0
+//
+//                                    override fun run() {
+//                                        Bukkit.getOnlinePlayers().forEach { player ->
+//                                            content[count.toString()]?.entries?.forEach { entry ->
+//                                                player.playSound(player.location, INST_SOUND_MAP.getOrDefault(entry.key, INST_SOUND), SoundCategory.MASTER, 100F, entry.value.toFloatOrNull()?: 1F)
+//                                            }
+//                                        }
+//                                        count++
+//                                    }
+//                                }, 0, 1)
+//                                Bukkit.getScheduler().runTaskLater(InstPlugin.INSTANCE, Runnable {
+//                                    task.cancel()
+//                                }, content.count().toLong())
+//                                it.send("${file.nameWithoutExtension} 파일의 녹음을 재생합니다.")
+//                            } catch (exception: IOException) {
+//                                exception.printStackTrace()
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//            then("save") {
+//                then("name" to nonexistentFile()) {
+//                    require { INST_TASK != null }
+//                    executes {
+//                        INST_SCHEDULER?.run {
+//                            it.send("파일 저장 기다리는 중...")
+//                            Bukkit.getScheduler().runTaskLater(InstPlugin.INSTANCE, Runnable {
+//                                it.parseOrNullArgument<String>("name")?.let { name ->
+//                                    val map = HashMap<String, HashMap<String, String>>().apply {
+//                                        music.forEach { entry ->
+//                                            put(entry.key.toString(), HashMap<String, String>().apply {
+//                                                entry.value.forEach { sound ->
+//                                                    put(sound.key.name.removePrefix(PREFIX), sound.value.toString())
+//                                                }
+//                                            })
+//                                        }
+//                                    }
+//                                    try {
+//                                        FileOutputStream(File(FOLDER, "$name.$EXTENSION")).use { file ->
+//                                            file.write(Gson().toJson(map).toByteArray())
+//                                            it.send("녹음이 $name.$EXTENSION 파일에 저장되었습니다.")
+//                                        }
+//                                    } catch (exception: IOException) {
+//                                        exception.printStackTrace()
+//                                    }
+//                                    stop()
+//                                }
+//                            }, singleTicks)
+//                        }
+//                    }
+//                }
+//            }
         }
         then("player") {
             require { isOp }

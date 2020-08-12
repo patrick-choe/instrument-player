@@ -21,6 +21,8 @@ package com.github.patrick.inst
 
 import com.github.patrick.inst.task.InstScheduler
 import com.github.patrick.inst.util.InstBox
+import com.google.common.collect.BiMap
+import com.google.common.collect.HashBiMap
 import com.google.common.collect.ImmutableMap
 import org.bukkit.Material
 import org.bukkit.Sound
@@ -38,23 +40,25 @@ internal var INST_BAR = 4
 internal var INST_SCHEDULER: InstScheduler? = null
 internal var INST_TASK: BukkitTask? = null
 
-internal val INST_SOUND_MAP = requireNotNull(ImmutableMap
-        .builder<String, Sound>()
-        .put("BANJO", Sound.BLOCK_NOTE_BLOCK_BANJO)
-        .put("BASEDRUM", Sound.BLOCK_NOTE_BLOCK_BASEDRUM)
-        .put("BASS", Sound.BLOCK_NOTE_BLOCK_BASS)
-        .put("BELL", Sound.BLOCK_NOTE_BLOCK_BELL)
-        .put("BIT", Sound.BLOCK_NOTE_BLOCK_BIT)
-        .put("CHIME", Sound.BLOCK_NOTE_BLOCK_CHIME)
-        .put("COW_BELL", Sound.BLOCK_NOTE_BLOCK_COW_BELL)
-        .put("DIDGERIDOO", Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO)
-        .put("FLUTE", Sound.BLOCK_NOTE_BLOCK_FLUTE)
-        .put("GUITAR", Sound.BLOCK_NOTE_BLOCK_GUITAR)
-        .put("HARP", Sound.BLOCK_NOTE_BLOCK_HARP)
-        .put("HAT", Sound.BLOCK_NOTE_BLOCK_HAT)
-        .put("IRON_XYLOPHONE", Sound.BLOCK_NOTE_BLOCK_IRON_XYLOPHONE)
-        .put("PLING", Sound.BLOCK_NOTE_BLOCK_PLING)
-        .put("SNARE", Sound.BLOCK_NOTE_BLOCK_SNARE)
-        .put("XYLOPHONE", Sound.BLOCK_NOTE_BLOCK_XYLOPHONE)
-        .build()
-)
+private val ORIGINAL = requireNotNull(HashBiMap.create(HashMap<Int, Sound>().apply {
+    put(1, Sound.BLOCK_NOTE_BLOCK_BANJO)
+    put(2, Sound.BLOCK_NOTE_BLOCK_BASEDRUM)
+    put(3, Sound.BLOCK_NOTE_BLOCK_BASS)
+    put(4, Sound.BLOCK_NOTE_BLOCK_BELL)
+    put(5, Sound.BLOCK_NOTE_BLOCK_BIT)
+    put(6, Sound.BLOCK_NOTE_BLOCK_CHIME)
+    put(7, Sound.BLOCK_NOTE_BLOCK_COW_BELL)
+    put(8, Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO)
+    put(9, Sound.BLOCK_NOTE_BLOCK_FLUTE)
+    put(10, Sound.BLOCK_NOTE_BLOCK_GUITAR)
+    put(11, Sound.BLOCK_NOTE_BLOCK_HARP)
+    put(12, Sound.BLOCK_NOTE_BLOCK_HAT)
+    put(13, Sound.BLOCK_NOTE_BLOCK_IRON_XYLOPHONE)
+    put(14, Sound.BLOCK_NOTE_BLOCK_PLING)
+    put(15, Sound.BLOCK_NOTE_BLOCK_SNARE)
+    put(16, Sound.BLOCK_NOTE_BLOCK_XYLOPHONE)
+}))
+
+internal val INST_INT_SOUND_MAP = ImmutableMap.copyOf(ORIGINAL)
+
+internal val INST_SOUND_INT_MAP = ImmutableMap.copyOf(ORIGINAL.inverse())
