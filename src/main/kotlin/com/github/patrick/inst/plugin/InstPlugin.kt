@@ -25,7 +25,7 @@ import com.github.patrick.inst.INST_MATERIAL
 import com.github.patrick.inst.INST_PLAYER
 import com.github.patrick.inst.INST_SCHEDULER
 import com.github.patrick.inst.INST_SOUND
-import com.github.patrick.inst.command.FOLDER
+//import com.github.patrick.inst.command.FOLDER
 import com.github.patrick.inst.command.register
 import com.github.patrick.inst.task.InstScheduler
 import com.github.patrick.inst.util.InstBlock
@@ -52,7 +52,7 @@ class InstPlugin : JavaPlugin() {
 
     override fun onEnable() {
         INSTANCE = this
-        FOLDER.mkdir()
+//        FOLDER.mkdir()
         saveDefaultConfig()
         server.scheduler.runTaskTimer(this, InstConfig(File(dataFolder, "config.yml")), 0, 1)
         server.pluginManager.registerEvents(InstListener(), this)
